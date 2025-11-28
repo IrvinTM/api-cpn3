@@ -18,13 +18,14 @@ var AWS = require("aws-sdk");
 AWS.config.update({ region: "REGION" });
 
 
+
 // config de postgress
 
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
   host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'parcial3_db',
-  password: process.env.DB_PASSWORD || 'password',
+  database: process.env.DB_NAME || 'parcial3',
+  password: process.env.DB_PASSWORD || 'mysecretpassword',
   port: process.env.DB_PORT || 5432,
 });
 
@@ -138,9 +139,9 @@ app.post('/api/contacto', async (req, res) => {
         
         const values = [uuid, nombre, correo, telefono];
         
-        //const dbResult = await pool.query(query, values);
+        const dbResult = await pool.query(query, values);
 
-        //console.log('datos guardados en la DB:', dbResult.rows[0]);
+        console.log('datos guardados en la DB:', dbResult.rows[0]);
 
         const infoNotificacion = {
             uuid: uuid,
@@ -171,5 +172,8 @@ app.get('/api/health', async (req, res)=>{
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
+
+    console.log("la ip es: "+ getServerIP())
     console.log(`escuchando en el puerto ${PORT}`);
 });
+
