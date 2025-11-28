@@ -13,6 +13,10 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twillio(accountSid, authToken);
 
+var AWS = require("aws-sdk");
+
+AWS.config.update({ region: "REGION" });
+
 
 // config de postgress
 
@@ -30,7 +34,59 @@ const pool = new Pool({
 async function enviarCorreo(destinatario, datos) {
     console.log(`[STUB] Enviando correo a ${destinatario}...`);
     console.log(`[DATA] UUID: ${datos.uuid}, Nombre: ${datos.nombre}, Server IP: ${datos.ip}`);
-    return true;
+
+    var params = {
+  Destination: {
+    /* required */ //TODO
+    CcAddresses: [
+      "EMAIL_ADDRESS",
+      /* more items */
+    ],
+    ToAddresses: [
+      destinatario,
+      /* more items */
+    ],
+  },
+  Message: {
+    /* required */
+    Body: {
+      /* required */
+      Html: {
+        Charset: "UTF-8",
+        Data: "HTML_FORMAT_BODY",
+      },
+      Text: {
+        Charset: "UTF-8",
+        Data: "TEXT_FORMAT_BODY",
+      },
+    },
+    Subject: {
+      Charset: "UTF-8",
+      Data: "Test email",
+    },
+  },
+
+  //TODO
+  Source: "SENDER_EMAIL_ADDRESS" /* required */,
+  ReplyToAddresses: [
+    "EMAIL_ADDRESS",
+    /* more items */
+  ],
+};
+
+// Create the promise and SES service object
+var sendPromise = new AWS.SES({ apiVersion: "2010-12-01" })
+  .sendEmail(params)
+  .promise();
+
+// Handle promise's fulfilled/rejected states
+sendPromise
+  .then(function (data) {
+    console.log(data.MessageId);
+  })
+  .catch(function (err) {
+    console.error(err, err.stack);
+  });
 }
 
 // enviar el sms con twillio 
