@@ -15,79 +15,79 @@ const client = twillio(accountSid, authToken);
 
 var AWS = require("aws-sdk");
 
-AWS.config.update({ region: "REGION" });
+AWS.config.update({ region: "us-east-2" });
 
 
 
 // config de postgress
 
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'parcial3',
-  password: process.env.DB_PASSWORD || 'mysecretpassword',
-  port: process.env.DB_PORT || 5432,
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'parcial3',
+    password: process.env.DB_PASSWORD || 'mysecretpassword',
+    port: process.env.DB_PORT || 5432,
 });
 
 
 // enviar correo  TODO amazon ces 
- 
+
 async function enviarCorreo(destinatario, datos) {
     console.log(`[STUB] Enviando correo a ${destinatario}...`);
     console.log(`[DATA] UUID: ${datos.uuid}, Nombre: ${datos.nombre}, Server IP: ${datos.ip}`);
 
     var params = {
-  Destination: {
-    /* required */ //TODO
-    CcAddresses: [
-      "EMAIL_ADDRESS",
-      /* more items */
-    ],
-    ToAddresses: [
-      destinatario,
-      /* more items */
-    ],
-  },
-  Message: {
-    /* required */
-    Body: {
-      /* required */
-      Html: {
-        Charset: "UTF-8",
-        Data: "HTML_FORMAT_BODY",
-      },
-      Text: {
-        Charset: "UTF-8",
-        Data: "TEXT_FORMAT_BODY",
-      },
-    },
-    Subject: {
-      Charset: "UTF-8",
-      Data: "Test email",
-    },
-  },
+        Destination: {
+            /* required */ //TODO
+            CcAddresses: [
+                "tm22012@ues.edu.sv",
+                /* more items */
+            ],
+            ToAddresses: [
+                destinatario,
+                /* more items */
+            ],
+        },
+        Message: {
+            /* required */
+            Body: {
+                /* required */
+                Html: {
+                    Charset: "UTF-8",
+                    Data: "Hola desde Amazon SES",
+                },
+                Text: {
+                    Charset: "UTF-8",
+                    Data: "TEXT_FORMAT_BODY",
+                },
+            },
+            Subject: {
+                Charset: "UTF-8",
+                Data: "Test email from Amazon SES",
+            },
+        },
 
-  //TODO
-  Source: "SENDER_EMAIL_ADDRESS" /* required */,
-  ReplyToAddresses: [
-    "EMAIL_ADDRESS",
-    /* more items */
-  ],
-};
+        //TODO
+        Source: "irvintm23@gmail.com" /* required */,
+        ReplyToAddresses: [
+            "irvintm23@gmail.com",
+            /* more items */
+        ],
+    };
 
-// Create the promise and SES service object
-var sendPromise = new AWS.SES({ apiVersion: "2010-12-01" })
-  .sendEmail(params)
-  .promise();
+    // Create the promise and SES service object
+    var sendPromise = new AWS.SES({ apiVersion: "2010-12-01" })
+        .sendEmail(params)
+        .promise();
 
-// Handle promise's fulfilled/rejected states
-sendPromise
-  .then(function (data) {
-    console.log(data.MessageId);
-  })
-  .catch(function (err) {
-    console.error(err, err.stack);
-  });
+    // Handle promise's fulfilled/rejected states
+    sendPromise
+        .then(function(data) {
+            console.log(data.MessageId);
+        })
+        .catch(function(err) {
+            console.error(err, err.stack);
+        });
 }
 
 // enviar el sms con twillio 
@@ -136,17 +136,17 @@ app.post('/api/contacto', async (req, res) => {
             VALUES ($1, $2, $3, $4, NOW())
             RETURNING *;
         `;
-        
-        const values = [uuid, nombre, correo, telefono];
-        
-        const dbResult = await pool.query(query, values);
 
-        console.log('datos guardados en la DB:', dbResult.rows[0]);
+        const values = [uuid, nombre, correo, telefono];
+
+        //  const dbResult = await pool.query(query, values);
+
+        // console.log('datos guardados en la DB:', dbResult.rows[0]);
 
         const infoNotificacion = {
             uuid: uuid,
             nombre: nombre,
-            ip: serverIP  
+            ip: serverIP
         };
 
         await enviarCorreo(correo, infoNotificacion);
@@ -154,7 +154,7 @@ app.post('/api/contacto', async (req, res) => {
 
         res.status(201).json({
             message: 'datos procesados correctamente',
-            data_guardada: dbResult.rows[0],
+            //data_guardada: dbResult.rows[0],
             server_ip: serverIP
         });
 
@@ -164,7 +164,7 @@ app.post('/api/contacto', async (req, res) => {
     }
 });
 
-app.get('/api/health', async (req, res)=>{
+app.get('/api/health', async (req, res) => {
 
     res.send(`api ready xdxd
        `)
@@ -173,7 +173,7 @@ app.get('/api/health', async (req, res)=>{
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
 
-    console.log("la ip es: "+ getServerIP())
+    console.log("la ip es: " + getServerIP())
     console.log(`escuchando en el puerto ${PORT}`);
 });
 
