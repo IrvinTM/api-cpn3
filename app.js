@@ -54,7 +54,7 @@ async function enviarCorreo(destinatario, datos) {
                 /* required */
                 Html: {
                     Charset: "UTF-8",
-                    Data: "Hola desde Amazon SES",
+                    Data: `Hola ${datos.nombre} desde Amazon SES, tambien te enviamos un sms a ${datos.telefono}, te responde la ip ${datos.ip}`,
                 },
                 Text: {
                     Charset: "UTF-8",
@@ -97,7 +97,7 @@ async function enviarSMS(telefono, datos) {
     console.log(`[DATA] UUID: ${datos.uuid}, Nombre: ${datos.nombre}, Server IP: ${datos.ip}`);
 
     const message = await client.messages.create({
-        body: "Hola desde twillio xd xd ",
+        body: `Hola ${datos.nombre} desde Twillio, tambien te enviamos un correo a ${datos.correo}, te responde la ip ${datos.ip}`,
         from: "+16592004724",
         to: telefono,
     })
@@ -132,21 +132,23 @@ app.post('/api/contacto', async (req, res) => {
         const serverIP = getServerIP();
 
         const query = `
-            INSERT INTO contactos (uuid, nombre, correo, telefono, created_at)
-            VALUES ($1, $2, $3, $4, NOW())
+            INSERT INTO contactos (uuid, nombre, correo, ip, telefono, created_at)
+            VALUES ($1, $2, $3, $4, $5, NOW())
             RETURNING *;
         `;
 
-        const values = [uuid, nombre, correo, telefono];
+        const values = [uuid, nombre, correo, serverIP, telefono];
 
-        //  const dbResult = await pool.query(query, values);
+        const dbResult = await pool.query(query, values);
 
-        // console.log('datos guardados en la DB:', dbResult.rows[0]);
+        console.log('datos guardados en la DB:', dbResult.rows[0]);
 
         const infoNotificacion = {
             uuid: uuid,
             nombre: nombre,
-            ip: serverIP
+            correo: correo,
+            ip: serverIP,
+            telefono: telefono,
         };
 
         await enviarCorreo(correo, infoNotificacion);
@@ -170,7 +172,7 @@ app.get('/api/health', async (req, res) => {
        `)
 })
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
 
     console.log("la ip es: " + getServerIP())
